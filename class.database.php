@@ -2,7 +2,7 @@
 
 /**
  *  Database PDO | PHP 5
- *	Build 2013.05.10
+ *	Build 2013.05.16
  *
  *	Copyright (c) 2013
  *	Jonathan Discipulo <jonathan.discipulo@gmail.com>
@@ -26,32 +26,30 @@
  * 
 **/
 
-// }}
-// {{ Database
+
+/** Database Class **/
 class Database {
 
 	private $pdo, $host, $user, $pass, $name, $charset, $driver, $option;
 	public $statement, $result;
+	private $exception = array();
 	
-	// }}
-	// {{ Constructor
-	public function __construct( $db, $option=array() ) {
+	/** Constructor **/
+	public function __construct( $db, $option=null ) {
 		$this->host = $db['host'];
 		$this->user = $db['user'];
 		$this->pass = $db['pass'];
 		$this->name = $db['name'];
-		$this->charsetset = $db['charset'];
+		$this->charset = $db['charset'];
 		$this->driver = $db['driver'];
 		$this->option = $option;
 	}
 	
-	//////////////////////
-	// PDO Class
-	//////////////////////
+	/** PDO **/
 	
-	// }}
-	// {{ Connect [returns PDO object]
+	/** Connect **/
 	public function connect() {
+	
 		// default connection string
 		$connection = $this->driver . ':host=' . $this->host . ';dbname=' . $this->name . ';charset=' . $this->charset;
 		switch ( strtolower($this->driver) ) {
@@ -67,241 +65,216 @@ class Database {
 			default:
 				break;
 		}
-		$this->pdo = new PDO( $connection, $this->user, $this->pass, $this->option );
-		return (($this->pdo) ? true: false);
+		
+		try {
+			$this->pdo = new PDO( $connection, $this->user, $this->pass, $this->option );
+			return true;
+		} catch ( PDOException $e ) {
+			$this->exception[] = array( $e->errorInfo(), $e->getMessage(), $e->getCode() );
+			return false;
+		}
+		
+		return false;
+		
 	}
 
-	// }}
-	// {{ Begin Transaction [returns true or false]
+	/** Begin Transaction **/
 	public function begin() {
 		return $this->pdo->beginTransaction();
 	}
 	
-	// }}
-	// {{ Commit Transaction [returns true or false]
+	/** Commit Transaction **/
 	public function commit() {
 		return $this->pdo->commit();
 	}
 	
-	// }}
-	// {{ Error Code [returns SQLSTATE (alpha numeric)]
+	/** Error Code [returns SQLSTATE (alpha numeric)] **/
 	public function errorCode() {
 		return $this->pdo->errorCode();
 	}
 	
-	// }}
-	// {{ Error Info [returns array]
+	/** Error Info [returns array] **/
 	public function errorInfo() {
 		return $this->pdo->errorInfo();
 	}
 	
-	// }}
-	// {{ Execute [returns number affected rows)]
+	/** Execute [returns number affected rows)] **/
 	public function exec( $sql ) {
 		return $this->pdo->exec( $sql );
 	}
 	
-	// }}
-	// {{ Get Attribute [returns string or null]
+	/** Get Attribute [returns string or null] **/
 	public function get( $attribute ) {
 		return $this->pdo->getAttribute( $attribute );
 	}
 	
-	// }}
-	// {{ Get Available Drivers [returns array]
+	/** Get Available Drivers [returns array] **/
 	public function drivers() {
 		return $this->pdo->getAvailableDrivers();
 	}
 	
-	// }}
-	// {{ In Transaction? [returns true or false]
+	/** In Transaction? [returns true or false] **/
 	public function inTransaction() {
 		return $this->pdo->inTransaction();
 	}
 
-	// }}
-	// {{ Last Insert ID [returns id string or sequence id string]
+	/** Last Insert ID [returns id string or sequence id string] **/
 	public function lastInsertId( $name=null) {
 		return $this->pdo->lastInsertId( $name );
 	}
 
-	// }}
-	// {{ Prepare [returns PDOStatement object or false]
+	/** Prepare [returns PDOStatement object or false] **/
 	public function prepare( $sql, $options=array() ) {
 		$this->statement = $this->pdo->prepare( $sql, $options );
 		return $this->statement;
 	}
 	
-	// }}
-	// {{ Query [returns PDOStatement object or false]
+	/** Query [returns PDOStatement object or false] **/
 	public function query( $sql ) {
 		$this->statement = $this->pdo->query( $sql );
 		return $this->statement;
 	}
 	
-	// }}
-	// {{ Quote [returns quoted string or false]
+	/** Quote [returns quoted string or false] **/
 	public function quote( $string, $type=PDO::PARAM_STR ) {
 		return $this->pdo->quote( $string, $type );
 	}
 	
-	// }}
-	// {{ Roll Back [returns true or false]
+	/** Roll Back [returns true or false] **/
 	public function rollBack() {
 		return $this->pdo->rollBack();
 	}
 
-	// }}
-	// {{ Set Attribute [returns true or false]
+	/** Set Attribute [returns true or false] **/
 	public function set( $attribute, $value ) {
 		return $this->pdo->setAttribute( $attribute, $value );
 	}
 
-	//////////////////////
-	// PDO Statement Class
-	//////////////////////
-	
-	// }}
-	// {{ Bind Column [returns true or false]
+	/** PDO Statement **/
+
+	/** Bind Column [returns true or false] **/
 	public function bindColumn( $column, &$param, $type=PDO::PARAM_INT, $maxlen=null, $data=null ) {
 		return $this->statement->bindColumn( $column, $param, $type, $maxlen, $data );
 	}
 
-	// }}
-	// {{ Bind Param [returns true or false]
+	/** Bind Param [returns true or false] **/
 	public function bindParam( $param, &$var, $type=PDO::PARAM_STR, $length=null, $options=null ) {
 		return $this->statement->bindParam( $param, $var, $type, $length, $options );
 	}
 
-	// }}
-	// {{ Bind Value [returns true or false]
+	/** Bind Value [returns true or false] **/
 	public function bindValue( $param, &$value, $type=PDO::PARAM_STR ) {
 		return $this->statement->bindValue( $param, $value, $type );
 	}
 
-	// }}
-	// {{ Close Cursor [returns true or false]
+	/** Close Cursor [returns true or false] **/
 	public function closeCursor() {
 		return $this->statement->closeCursor();
 	}
 
-	// }}
-	// {{ Column Count [returns column count or zero]
+	/** Column Count [returns column count or zero] **/
 	public function columnCount() {
 		return $this->statement->columnCount();
 	}
 	
-	// }}
-	// {{ Debug Dump Params [returns nothing but outputs string]
+	/** Debug Dump Params [returns nothing but outputs string] **/
 	public function debug() {
 		$this->statement->debugDumpParams();
 	}
 
-	// }}
-	// {{ Statement Error Code [returns SQLSTATE]
+	/** Statement Error Code [returns SQLSTATE] **/
 	public function statementErrorCode() {
 		return $this->statement->errorCode();
 	}
 
-	// }}
-	// {{ Statement Error Info [returns array]
+	/** Statement Error Info [returns array] **/
 	public function statementErrorInfo() {
 		return $this->statement->errorInfo();
 	}
 	
-	// }}
-	// {{ Execute [returns true or false]
+	/** Execute [returns true or false] **/
 	public function execute( $input=array() ) {
 		return $this->statement->execute( $input );
 	}
 
-	// }}
-	// {{ Fetch [returns depends on fetch type or false]
+	/** Fetch [returns depends on fetch type or false] **/
 	public function fetch( $style=null, $orientation=PDO::FETCH_ORI_NEXT, $offset=0 ) {
 		$this->result = $this->statement->fetch( $style, $orientation, $offset );
 		return $this->result;
 	}
 
-	// }}
-	// {{ Fetch All [returns array or false]
+	/** Fetch All [returns array or false] **/
 	public function fetchAll( $style, $args=null, $ctor=array() ) {
 		$this->result = $this->statement->fetchAll( $style, $args, $ctor );
 		return $this->result;
 	}
 	
-	// }}
-	// {{ Fetch Column [returns integer resultset]
+	/** Fetch Column [returns integer resultset] **/
 	public function fetchColumn( $num=0 ) {
 		$this->result = $this->statement->fetchColumn( $num );
 		return $this->result;
 	}
 	
-	// }}
-	// {{ Fetch Object [returns object instance or false]
+	/** Fetch Object [returns object instance or false] **/
 	public function fetchObject( $class, $ctor=array() ) {
 		$this->result = $this->statement->fetchObject( $class, $ctor );
 		return $this->result;
 	}
 	
-	// }}
-	// {{ Get Statement Attribute [returns attribute value]
+	/** Get Statement Attribute [returns attribute value] **/
 	public function getStatementAttribute( $attribute ) {
 		return $this->statement->getAttribute( $attribute );
 	}
 	
-	// }}
-	// {{ Get Statement Column Meta [returns associative array]
+	/** Get Statement Column Meta [returns associative array] **/
 	public function getStatementColumnMeta( $attribute ) {
 		return $this->statement->getAttribute( $attribute );
 	}
 	
-	// }}
-	// {{ Next Rowset [returns true or false]
+	/** Next Rowset [returns true or false] **/
 	public function nextRowset() {
 		return $this->statement->nextRowset();
 	}
 	
-	// }}
-	// {{ Rows [returns row count]
+	/** Rows [returns row count] **/
 	public function rows() {
 		return $this->statement->rowCount();
 	}
 
-	// }}
-	// {{ Set Statement Attribute [returns true or false]
+	/** Set Statement Attribute [returns true or false] **/
 	public function setStatementAttribute( $attribute, $value ) {
 		return $this->statement->setAttribute( $attribute, $value );
 	}
 	
-	// }}
-	// {{ Set Fetch Mode [returns true or false]
+	/** Set Fetch Mode [returns true or false] **/
 	public function setFetchMode( $mode=PDO::FETCH_NUM ) {
 		return $this->statement->setFetchMode( $mode );
 	}
 	
-	// Original Functions
-
-	// }}
-	// {{ Get Statement [returns statement object]
+	/** Get Statement [returns statement object] **/
 	public function getStatement() {
 		return $this->statement;
 	}
-	
-	// }}
-	// {{ Result [returns result object]
+
+	/** Result [returns result object] **/
 	public function getResult() {
 		return $this->result;
 	}
-
-	// }}
-	// {{ Clean
+	
+	/** PDO Exception **/
+	
+	/** Get Exception [returns array] **/
+	public function getException() {
+		return $this->exception;
+	}
+	
+	/** Clean **/
 	public function clean() {
 		if ( isset($this->result) || is_resource($this->result) ) unset($this->result);
 		if ( isset($this->statement) || is_resource($this->statement) ) unset($this->statement);
 	}
 
-	// }}
-	// {{ Disconnect
+	/** Disconnect **/
 	public function disconnect() {
 		if ( isset($this->host) ) unset($this->host);
 		if ( isset($this->user) ) unset($this->user);
@@ -315,20 +288,17 @@ class Database {
 		if ( isset($this->pdo) || is_resource($this->pdo) ) unset($this->pdo);
 	}
 
-	// }}
-	// {{ Magic Method: Sleep
+	/** Magic Method: Sleep **/
     public function __sleep() {
 		return array($this->host, $this->user, $this->pass, $this->name, $this->charset, $this->driver, $this->option);
     }
     
-	// }}
-	// {{ Magic Method: Wake Up
+	/** Magic Method: Wake Up **/
     public function __wakeup() {
 		$this->connect();
     }
 
-	// }}
-	// {{ Destructor
+	/** Destructor **/
 	public function __destruct() {
 		$this->disconnect();
 	}
