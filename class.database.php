@@ -2,7 +2,7 @@
 
 /**
  *  Database PDO | PHP 5
- *	Build 2013.05.16
+ *	Build 2013.05.20
  *
  *	Copyright (c) 2013
  *	Jonathan Discipulo <jonathan.discipulo@gmail.com>
@@ -30,9 +30,9 @@
 /** Database Class **/
 class Database {
 
-	private $pdo, $host, $user, $pass, $name, $charset, $driver, $option;
-	public $statement, $result;
-	private $exception = array();
+	private $host, $user, $pass, $name, $charset, $driver, $option;
+	public $pdo, $statement, $result;
+	public $exception;
 	
 	/** Constructor **/
 	public function __construct( $db, $option=null ) {
@@ -53,15 +53,15 @@ class Database {
 		// default connection string
 		$connection = $this->driver . ':host=' . $this->host . ';dbname=' . $this->name . ';charset=' . $this->charset;
 		switch ( strtolower($this->driver) ) {
-			case "mysql":
-				break;
-			case "pgsql":
-				break;
-			case "dblib":
+			case "sqlite":
+				$connection = $this->driver . ':' . $this->host . $this->name . '.db';
 				break;
 			case "sqlsrv":
 				$connection = $this->driver . ':Server=' . $this->host . ';Database=' . $this->name;
 				break;
+			case "mysql":
+			case "pgsql":
+			case "dblib":
 			default:
 				break;
 		}
@@ -70,7 +70,7 @@ class Database {
 			$this->pdo = new PDO( $connection, $this->user, $this->pass, $this->option );
 			return true;
 		} catch ( PDOException $e ) {
-			$this->exception[] = array( $e->errorInfo(), $e->getMessage(), $e->getCode() );
+			$this->exception = $e;
 			return false;
 		}
 		
@@ -79,8 +79,8 @@ class Database {
 	}
 
 	/** Begin Transaction **/
-	public function begin() {
-		return $this->pdo->beginTransaction();
+	public function beginTransaction() {
+		$this->pdo->beginTransaction();
 	}
 	
 	/** Commit Transaction **/
@@ -104,12 +104,12 @@ class Database {
 	}
 	
 	/** Get Attribute [returns string or null] **/
-	public function get( $attribute ) {
+	public function getAttribute( $attribute ) {
 		return $this->pdo->getAttribute( $attribute );
 	}
 	
 	/** Get Available Drivers [returns array] **/
-	public function drivers() {
+	public function getAvailableDrivers() {
 		return $this->pdo->getAvailableDrivers();
 	}
 	
@@ -146,7 +146,7 @@ class Database {
 	}
 
 	/** Set Attribute [returns true or false] **/
-	public function set( $attribute, $value ) {
+	public function setAttribute( $attribute, $value ) {
 		return $this->pdo->setAttribute( $attribute, $value );
 	}
 
@@ -178,7 +178,7 @@ class Database {
 	}
 	
 	/** Debug Dump Params [returns nothing but outputs string] **/
-	public function debug() {
+	public function debugDumpParams() {
 		$this->statement->debugDumpParams();
 	}
 
@@ -193,7 +193,7 @@ class Database {
 	}
 	
 	/** Execute [returns true or false] **/
-	public function execute( $input=array() ) {
+	public function execute( $input=null ) {
 		return $this->statement->execute( $input );
 	}
 
@@ -204,7 +204,7 @@ class Database {
 	}
 
 	/** Fetch All [returns array or false] **/
-	public function fetchAll( $style, $args=null, $ctor=array() ) {
+	public function fetchAll( $style=null, $args=null, $ctor=array() ) {
 		$this->result = $this->statement->fetchAll( $style, $args, $ctor );
 		return $this->result;
 	}
@@ -222,13 +222,13 @@ class Database {
 	}
 	
 	/** Get Statement Attribute [returns attribute value] **/
-	public function getStatementAttribute( $attribute ) {
+	public function statementGetAttribute( $attribute ) {
 		return $this->statement->getAttribute( $attribute );
 	}
 	
 	/** Get Statement Column Meta [returns associative array] **/
-	public function getStatementColumnMeta( $attribute ) {
-		return $this->statement->getAttribute( $attribute );
+	public function statementGetColumnMeta( $attribute ) {
+		return $this->statement->getColumnMeta( $attribute );
 	}
 	
 	/** Next Rowset [returns true or false] **/
@@ -237,12 +237,12 @@ class Database {
 	}
 	
 	/** Rows [returns row count] **/
-	public function rows() {
+	public function rowCount() {
 		return $this->statement->rowCount();
 	}
 
 	/** Set Statement Attribute [returns true or false] **/
-	public function setStatementAttribute( $attribute, $value ) {
+	public function statementSetAttribute( $attribute, $value ) {
 		return $this->statement->setAttribute( $attribute, $value );
 	}
 	
