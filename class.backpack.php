@@ -229,6 +229,37 @@ class Backpack {
         return $result;
     
     }	
+
+	/** Convert string into HTML entities **/
+	public function displayObject( $object ) {
+		if ($object !== null) return "<xmp>" . print_r($object, true) . "</xmp>";
+		
+	}
+	
+	/** Convert backslashes to forward slashes **/
+	public function backToForward( $string ) {
+		return str_replace('\\', '/', $string);
+	}
+	
+	/** Display link **/
+	public function displayLink( $url=null, $title=null ) {
+		if ($url !== null) {
+			if ($title !== null) {
+				return "<a href=\"{$url}\">" . $title . "</a>";
+			} else {
+				return "<a href=\"{$url}\">" . $url . "</a>";
+			}
+		}
+	}
+	
+	/** Compare if Equal **/
+	public function isEqual( $first, $second ) {
+		if ($first === $second) {
+			return true;
+		} else {
+			return false;
+		}
+	}	
 	
 	/** Magic Method: Sleep **/
     public function __sleep() {
