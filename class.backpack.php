@@ -1,28 +1,28 @@
 <?php
 
 /**
- *  Backpack | PHP 5
- *	Build 2013.05.16
+ * Backpack | PHP 5
+ * Build 2013.05.16
  *
- *	Copyright (c) 2013
- *	Jonathan Discipulo <jonathan.discipulo@gmail.com>
- *	https://github.com/jondiscipulo/
+ * Copyright (c) 2013
+ * Jonathan Discipulo <jonathan.discipulo@gmail.com>
+ * https://github.com/jondiscipulo/
  * 
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation; either
- *  version 2.1 of the License, or (at your option) any later version.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  * 
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  * 
- *  http://www.gnu.org/copyleft/lesser.html
+ * http://www.gnu.org/copyleft/lesser.html
  * 
 **/
 
@@ -30,7 +30,7 @@
  *
  * isRunningLocally - boolean
  * isHttps - boolean
- * getProtocol - string
+ * getUrlScheme - string
  * getEpoch - string
  * getMicroEpoch - string
  * getNow - string
@@ -58,16 +58,6 @@ class Backpack {
 	public function isRunningLocally() {
 		return ((($this->getServerIp())=='localhost') || (($this->getServerIp())=='127.0.0.1')) ? true : false;
 	}
-
-	/** is https? **/
-	public function isHttps() {
-		return (($_SERVER['HTTPS'])=='on') ? true : false;
-	}
-	
-	//** get current protocol used: http or https **/
-	public function getProtocol() {
-		return ($this->isHttps()) ? 'https' : 'http';
-	}
 	
 	/** get unix epoch **/
 	public function getEpoch() {
@@ -93,54 +83,100 @@ class Backpack {
 	public function getCacheBuster() {
 		return md5(time());
 	}
-
-	/** Get host URL **/
-	public function getHostUrl() {
-		return '//' . $_SERVER['HTTP_HOST'] . '/';
+	
+	/** get url scheme used: http or https **/
+	public function getUrlScheme() {
+		return ($this->isHttps()) ? 'https' : 'http';
 	}
 
-	/** Get Server IP Address **/
+	/** get server ip address **/
 	public function getServerIp() {
-		return $_SERVER['SERVER_ADDR'];
+		return (isset($_SERVER['SERVER_ADDR'])) ? $_SERVER['SERVER_ADDR'] : null;
 	}
 
-	/** Get Server Port **/
-	public function getServerPort() {
-		return $_SERVER['SERVER_PORT'];
-	}
-
-	/** Get Client IP Address **/
+	/** get client ip address **/
 	public function getClientIp() {
-		return $_SERVER['REMOTE_ADDR'];
+		return (isset($_SERVER['REMOTE_ADDR'])) ? $_SERVER['REMOTE_ADDR'] : null;
 	}
 
-	/** Get Client Port **/
+	/** get client port **/
 	public function getClientPort() {
-		return $_SERVER['REMOTE_PORT'];
+		return (isset($_SERVER['REMOTE_PORT'])) ? $_SERVER['REMOTE_PORT'] : null;
 	}
 
-	/** Get Client User Agent **/
+	/** get client user agent **/
 	public function getClientUserAgent() {
-		return $_SERVER['HTTP_USER_AGENT'];
+		return (isset($_SERVER['HTTP_USER_AGENT'])) ? $_SERVER['HTTP_USER_AGENT'] : null;
 	}
 
-	/** Get Query String **/
+	/** get query string **/
 	public function getQueryString() {
-		return $_SERVER['QUERY_STRING'];
+		return (isset($_SERVER['QUERY_STRING'])) ? $_SERVER['QUERY_STRING'] : null;
 	}
 	
-	/** String to Array **/
+	/** get server port **/
+	public function getServerPort() {
+		return (isset($_SERVER['SERVER_PORT'])) ? $_SERVER['SERVER_PORT'] : null;
+	}
+
+	/** get request uri **/
+	public function getRequestUri() {
+		return (isset($_SERVER['REQUEST_URI'])) ? $_SERVER['REQUEST_URI'] : null;
+	}
+
+	/** get server name **/
+	public function getServerName() {
+		return (isset($_SERVER['SERVER_NAME'])) ? $_SERVER['SERVER_NAME'] : null;
+	}
+
+	/** get host name **/
+	public function getHostName() {
+		return (isset($_SERVER['HTTP_HOST'])) ? $_SERVER['HTTP_HOST'] : null;
+	}
+
+	/** get https value **/
+	public function getHttpsValue() {
+		return (isset($_SERVER['HTTPS'])) ? $_SERVER['HTTPS'] : null;
+	}
+
+	/** is https? **/
+	public function isHttps() {
+		//if (!empty($this->getHttpsValue())) {
+			$result = ($this->getHttpsValue() == 'on') ? true : false;
+		//} else {
+			$result = (intval($this->getServerPort()) == 443) ? true : false;
+		//}
+		return $result;
+	}
+	
+	/** get host url **/
+	public function getUrlHost() {
+		return $this->getUrlScheme() . '://' . $this->getHostName() . '/';
+	}
+	
+	/** get current url **/
+	function getUrl() {
+		$url = null;
+		if (intval($this->getServerPort()) !== 80) {
+			$url .= $this->getServerName() . ':' . $this->getServerPort() . $this->getRequestUri();
+		} else {
+			$url .= $this->getServerName() . $this->getRequestUri();
+		}
+		return $url;
+	}
+	
+	/** string to array **/
 	public function stringToArray( $query ) {
 		parse_str($query, $array);
 		return $array;
 	}
 	
-	/** String to Json **/
+	/** string to json **/
 	public function stringToJson( $query ) {
 		return json_encode( stringToArray($query) );
 	}
 	
-	/** LZW Decompression **/
+	/** lzw decompression **/
 	function lzwd($binary) {
 		// convert binary string to codes
 		$dictionary_count = 256;
@@ -179,7 +215,7 @@ class Backpack {
 		return $return;
 	}
 
-	/** LZW Compression **/
+	/** lzw compression **/
 	public function lzwc($string) {
 		// compression
 		$dictionary = array_flip(range("\0", "\xFF"));
@@ -199,7 +235,7 @@ class Backpack {
 		// convert codes to binary string
 		$dictionary_count = 256;
 		$bits = 8; // ceil(log($dictionary_count, 2))
-		$return = "";
+		$return = '';
 		$rest = 0;
 		$rest_length = 0;
 		foreach ($codes as $code) {
@@ -215,33 +251,30 @@ class Backpack {
 				$rest &= (1 << $rest_length) - 1;
 			}
 		}
-		return $return . ($rest_length ? chr($rest << (8 - $rest_length)) : "");
+		return $return . ($rest_length ? chr($rest << (8 - $rest_length)) : '');
 	}
 	
-	/** Convert string into HTML entities **/
+	/** convert string into html entities **/
 	public function entitize( $string ) {
-
         for ($x=0; $x<=strlen($string)-1; $x++) {
             $ord = sprintf("%03u", ord(substr($string, $x, 1)));
             $result = $result . chr(38) . chr(35) . $ord . chr(59);
         }
-        
         return $result;
-    
     }	
 
-	/** Convert string into HTML entities **/
+	/** convert string into html entities **/
 	public function displayObject( $object ) {
 		if ($object !== null) return "<xmp>" . print_r($object, true) . "</xmp>";
 		
 	}
 	
-	/** Convert backslashes to forward slashes **/
+	/** convert backslashes to forward slashes **/
 	public function backToForward( $string ) {
 		return str_replace('\\', '/', $string);
 	}
 	
-	/** Display link **/
+	/** display link **/
 	public function displayLink( $url=null, $title=null ) {
 		if ($url !== null) {
 			if ($title !== null) {
@@ -252,27 +285,42 @@ class Backpack {
 		}
 	}
 	
-	/** Compare if Equal **/
-	public function isEqual( $first, $second ) {
-		if ($first === $second) {
-			return true;
-		} else {
-			return false;
+	/** display breadcrumbs **/
+	function displayBreadcrumbs( $home='home', $separator='&raquo;' ) {
+		$result = null;
+		$uri = null;
+		$x = 0;
+		$crumbs = explode('/', $this->getRequestUri(), -1);
+		foreach ($crumbs as $crumb) {
+			if ($crumb != '') {
+				$uri .= $crumb . '/';
+				$breadcrumbs[$crumb] = $this->getUrlHost() . $uri;
+				$x++;
+			} else {
+				$breadcrumbs[$home] = $this->getUrlHost();
+			}
 		}
+		$y = count($breadcrumbs)-1;
+		foreach ($breadcrumbs as $key => $value) {
+			$result .= '<a href="' . $value . '">' . $key . '</a> ' . (($y <= 0) ? '' : $separator . ' ');
+			$y--;
+		}
+		return $result;
+	}
+	
+	/** compare if equal **/
+	public function isEqual( $first, $second ) {
+		return ($first === $second) ? true : false;
 	}	
 	
-	/** Magic Method: Sleep **/
-    public function __sleep() {
-    }
+	/** magic method: sleep **/
+    public function __sleep() {}
     
-	/** Magic Method: Wake Up **/
-    public function __wakeup() {
-    }
+	/** magic method: wake up **/
+    public function __wakeup() {}
 
-	/** Destructor **/
-	public function __destruct() {
-		// reserved for codes to run when this object is destructed
-	}
+	/** destructor **/
+	public function __destruct() {}
 
 }
 
